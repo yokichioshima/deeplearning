@@ -1,8 +1,14 @@
 services:
-  deeplearning:
+  app:
     image: deeplearning
     platform: linux/arm64/v8
     container_name: deeplearning
     build:
       context: .
       dockerfile: docker/Dockerfile
+    volumes:
+      - type: bind 
+        source: ./src
+        target: /src
+    tty: true
+    working_dir: /src
