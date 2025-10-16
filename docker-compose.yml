@@ -9,6 +9,6 @@ services:
     volumes:
       - type: bind 
         source: ./src
-        target: /src
+        target: /home
     tty: true
-    working_dir: /src
+    working_dir: /home
