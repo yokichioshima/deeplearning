@@ -1,19 +1,21 @@
-from dataset import spiral;
-import matplotlib.pyplot as plt;
-import numpy as np;
-from two_layer_net import TwoLayerNet;
+from dataset import spiral
+from common.trainer import Trainer
+from optimizers.sgd import SGD
+from two_layer_net import TwoLayerNet
 
 def main():
-    x, t = spiral.load_data()
-    print('x', x.shape)
-    print('y', t.shape)
+    max_epoch = 300
+    batch_size = 30
+    hidden_size = 10
+    learning_rate = 1.0
 
-    N = 100
-    CLS_NUM = 3
-    markers = ['o', 'x', '^']
-    for i in range(CLS_NUM):
-        plt.scatter(x[i*N:(i+1)*N, 0], x[i*N:(i+1)*N, 1], s=40, marker=markers[i])
-    plt.savefig('figure.png')
+    x, t = spiral.load_data()
+    model = TwoLayerNet(input_size=2, hidden_size=hidden_size, output_size=3)
+    optimizer = SGD(lr=learning_rate)
+
+    trainer = Trainer(model, optimizer)
+    trainer.fit(x, t, max_epoch, batch_size, eval_interval=10)
+    trainer.plot()
 
 
 if __name__ == '__main__':
