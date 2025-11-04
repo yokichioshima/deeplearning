@@ -68,3 +68,28 @@ def load_vocab():
         pickle.dump((word_to_id, id_to_word), f)
     
     return word_to_id, id_to_word
+
+
+def load_data(data_type='train'):
+    '''
+        :pram data_type: データの種類: 'train' or 'test' or 'valid (val)'
+        :return:
+    '''
+    if data_type == 'val': data_type = 'valid'
+    save_path = dataset_dir + '/' + save_file[data_type]
+
+    word_to_id, id_to_word = load_vocab()
+
+    if os.path.exists(save_path):
+        corpus = np.load(save_path)
+        return corpus, word_to_id, id_to_word
+    
+    file_name = key_file[data_type]
+    file_path = dataset_dir + '/' + file_name
+    _download(file_name)
+
+    words = open(file_path).read().replace('\n', '<eos>').strip().split()
+    corpus = np.array([word_to_id[w] for w in words])
+
+    np.save(save_path, corpus)
+    return corpus, word_to_id, id_to_word
