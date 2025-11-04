@@ -33,13 +33,6 @@ def main():
     plt.scatter(U[:, 0], U[:, 1], alpha=0.5)
     plt.savefig('figure.png')
 
-    np.set_printoptions(precision=3)
-    print('covarience matrix')
-    print(C)
-    print('-'*50)
-    print('PPMI')
-    print(W)
-
 
 
 if __name__ == '__main__':
