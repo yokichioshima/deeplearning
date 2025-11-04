@@ -1,20 +1,31 @@
+import numpy as np
+from common.util import most_similar, create_co_matrix, ppmi
 from dataset import ptb
 
 def main():
-    corpus, wort_to_id, id_to_word = ptb.load_data('train')
+    window_size = 2
+    wordvec_size = 100
 
-    print('corpus size:', len(corpus))
-    print('corpus[:30]', corpus[:30])
-    print()
-    print('id_to_word[0]:', id_to_word[0])
-    print('id_to_word[1]:', id_to_word[1])
-    print('id_to_word[2]:', id_to_word[2])
-    print()
-    print("word_to_id['car']:", wort_to_id['car'])
-    print("word_to_id['happy']:", wort_to_id['happy'])
-    print("word_to_id['lexus']:", wort_to_id['lexus'])
+    corpus, word_to_id, id_to_word = ptb.load_data('train')
+    vocab_size = len(word_to_id)
+    print('counting co-occurrence ...')
+    C = create_co_matrix(corpus, vocab_size, window_size)
+    print('calculating PPMI ...')
+    W = ppmi(C, verbose=True)
 
+    print('calculating SVD ...')
+    try:
+        from sklearn.utils.extmath import randomized_svd
+        U, S, V = randomized_svd(W, n_components=wordvec_size, n_iter=5, random_state=None)
+    
+    except ImportError:
+        U, S, V = np.linalg.svd(W)
+    
+    word_vecs = U[:, :wordvec_size]
 
+    queries = ['you', 'year', 'car', 'toyota']
+    for query in queries:
+        most_similar(query, word_to_id, id_to_word, word_vecs, top=5)
 
 
 if __name__ == '__main__':
