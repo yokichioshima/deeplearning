@@ -61,6 +61,32 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top=5):
         if count >= top:
             return
 
+# one-hot 表現への変換
+# param: corpus: 単語 ID リスト(1 次元もしくは 2 次元の Numpy 配列)
+# param: vocab_size: 語彙数
+# return: one-hot 表現(2 次元もしくは 3 次元の Numpy 配列)
+def convert_one_hot(corpus, vocab_size):
+    N = corpus.shape[0]
+
+    if corpus.ndim == 1:
+        one_hot = np.zeros((N, vocab_size), dtype=np.int32)
+        for idx, word_id in enumerate(corpus):
+            one_hot[idx, word_id] = 1
+        return one_hot
+
+        
+    elif corpus.ndim == 2:
+        C = corpus.shape[1]
+        one_hot = np.zeros((N, C, vocab_size), dtype=np.int32)
+        for idx_0, word_ids in enumerate(corpus):
+            for idx_1, word_id in enumerate(word_ids):
+                one_hot[idx_0, idx_1, word_id] = 1
+        return one_hot
+
+    else:
+        raise ValueError('corpus.ndim must be 1 or 2')
+
+
 # 共起行列の作成
 # param: corpus: コーパス(単語 ID リスト)
 # param: vocab_size: 語彙数
