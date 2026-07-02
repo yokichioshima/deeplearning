@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 from common.trainer import Trainer
-import optimizers import Adam
+from optimizers.adam import Adam
 from models.cbow import CBOW
-from common.util import preprocess, create_cotnexts_target, covert_one hot
+from common.util import preprocess, create_cotnexts_target, covert_one_hot
 from dataset import ptb
 
 def main():
