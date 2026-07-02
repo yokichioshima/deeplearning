@@ -1,31 +1,40 @@
+import matplotlib.pyplot as plt
 import numpy as np
-from common.util import most_similar, create_co_matrix, ppmi
+import pickle
+from common.trainer import Trainer
+import optimizers import Adam
+from models.cbow import CBOW
+from common.util import preprocess, create_cotnexts_target, covert_one hot
 from dataset import ptb
 
 def main():
-    window_size = 2
-    wordvec_size = 100
+    window_size = 5
+    hidden_size = 100
+    batch_size = 100
+    max_epoch = 10
 
     corpus, word_to_id, id_to_word = ptb.load_data('train')
     vocab_size = len(word_to_id)
-    print('counting co-occurrence ...')
-    C = create_co_matrix(corpus, vocab_size, window_size)
-    print('calculating PPMI ...')
-    W = ppmi(C, verbose=True)
 
-    print('calculating SVD ...')
-    try:
-        from sklearn.utils.extmath import randomized_svd
-        U, S, V = randomized_svd(W, n_components=wordvec_size, n_iter=5, random_state=None)
-    
-    except ImportError:
-        U, S, V = np.linalg.svd(W)
-    
-    word_vecs = U[:, :wordvec_size]
+    contexts, target = create_contexts_target(corpus, window_size)
 
-    queries = ['you', 'year', 'car', 'toyota']
-    for query in queries:
-        most_similar(query, word_to_id, id_to_word, word_vecs, top=5)
+    model = CBOW(vocab_size, hidden_size, window_size, corpus)
+    optimizer = Adam()
+    trainer = Trainer(model, optimizer)
+
+    trainer.fit(contexts, target, max_epoch, batch_size)
+    trainer.plot()
+
+    word_vecs = model.word_vecs
+    params = {}
+    params['word_vecs'] = word_vecs.astype(np.float16)
+    params['word_to_id'] = word_to_id
+    params['id_to_word'] = id_to_word
+    pkl_file = 'cbow_params.pkl'
+    with open(pkl_file, 'wb') as f:
+        pickle.dump(params, f, -1)
+
+
 
 
 if __name__ == '__main__':
