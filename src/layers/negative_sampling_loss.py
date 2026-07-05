@@ -6,11 +6,17 @@ from samplers.unigram_sampler import UnigramSampler
 class NegativeSamplingLoss:
     # NegativeSamplingLoss の初期化
     # param: self: NegativeSamplingLoss。
-    # param: W: 出力層の重み。
+    # param: W: 出力層の重み。2次元配列で、各行が単語ベクトル。
     # param: corpus: コーパス(単語 ID リスト)。
     # param: power: 単語の出現頻度のべき乗。
     # param: sample_size: 負例のサンプリング数。
-    def __init__(self, W, corpus, power=0.75, sample_size=5):
+    def __init__(
+        self, 
+        W: np.ndarray[np.float32], 
+        corpus: list[int],
+        power: float =0.75, 
+        sample_size: int =5
+    ):
         self.sample_size = sample_size
         self.sampler = UnigramSampler(corpus, power, sample_size)
         self.loss_layers = [SigmoidWithLoss() for _ in range(sample_size + 1)]
@@ -26,7 +32,11 @@ class NegativeSamplingLoss:
     # param: h: 隠れ層の出力。
     # param: target: ターゲット。1 次元配列で、各行がターゲットの単語 ID。
     # return: loss: 損失値。
-    def forward(self, h: np.ndarray[np.float32], target: np.ndarray[np.int32]) -> float:
+    def forward(
+        self, 
+        h: np.ndarray[np.float32], 
+        target: np.ndarray[np.int32]
+    ) -> float:
         batch_size = target.shape[0]
         negative_sample = self.sampler.get_negative_sample(target)
 

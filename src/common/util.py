@@ -1,10 +1,10 @@
 import numpy as np
 
-# 前処理
-# param: text: テキストデータ(文字列)
-# return: corpus: 単語 ID リスト
-#         word_to_id: 単語から単語 ID へのディクショナリ
-#         id_to_word: 単語 ID から単語へのディクショナリ
+# 前処理。
+# param: text: テキストデータ(文字列)。
+# return: corpus: 単語 ID リスト。
+#         word_to_id: 単語から単語 ID へのディクショナリ。
+#         id_to_word: 単語 ID から単語へのディクショナリ。
 def preprocess(text: str) -> tuple[
     np.ndarray[np.int32], 
     dict[str, int], 
@@ -43,12 +43,12 @@ def cos_similarity(
     return np.dot(nx, ny)
 
 
-# 類似単語の検索
-# param: query: クエリ(テキスト)
-# param: word_to_id: 単語から単語 ID へのディクショナリ
-# param: id_to_word: 単語 ID から単語へのディクショナリ
-# param: word_matrix: 単語ベクトルをまとめた行列。各行に対応する単語のベクトルが格納されていることを想定
-# param: top: 上位何位魔で表示するか
+# 類似単語の検索。
+# param: query: クエリ(テキスト)。
+# param: word_to_id: 単語から単語 ID へのディクショナリ。
+# param: id_to_word: 単語 ID から単語へのディクショナリ。
+# param: word_matrix: 単語ベクトルをまとめた行列。各行に対応する単語のベクトルが格納されていることを想定。
+# param: top: 上位何位魔で表示するか。
 def most_similar(
     query: str, 
     word_to_id: dict[str, int], 
@@ -79,10 +79,10 @@ def most_similar(
         if count >= top:
             return
 
-# one-hot 表現への変換
-# param: corpus: 単語 ID リスト(1 次元もしくは 2 次元の Numpy 配列)
-# param: vocab_size: 語彙数
-# return: one-hot 表現(2 次元もしくは 3 次元の Numpy 配列)
+# one-hot 表現への変換。
+# param: corpus: 単語 ID リスト(1 次元もしくは 2 次元の Numpy 配列)。
+# param: vocab_size: 語彙数。
+# return: one-hot 表現(2 次元もしくは 3 次元の Numpy 配列)。
 def convert_one_hot(corpus: np.ndarray[np.int32], vocab_size: int) -> np.ndarray[np.int32]:
     N = corpus.shape[0]
 
@@ -133,10 +133,10 @@ def create_co_matrix(
         
     return co_matrix
 
-# PPMI (正の相互情報量)の作成
-# param C: 共起行列
-# param verbose: 進行状況を出力するかどうか
-# return: PPMI 行列
+# PPMI (正の相互情報量)の作成。
+# param C: 共起行列。
+# param verbose: 進行状況を出力するかどうか。
+# return: PPMI 行列。
 def ppmi(C: np.ndarray[np.int32], verbose=False, eps= 1e-8) -> np.ndarray[np.float32]:
     M = np.zeros_like(C, dtype=np.float32)
     N = np.sum(C)
@@ -179,3 +179,58 @@ def create_contexts_target(
         contexts.append(cs)
     
     return np.array(contexts), np.array(target)
+
+# アナロジーの計算。A : B = C : D の関係を満たす単語 D を求める。
+# param: a: 単語 A。
+# param: b: 単語 B。
+# param: c: 単語 C。
+# param: word_to_id: 単語から単語 ID へのディクショナリ。
+# param: id_to_word: 単語 ID から単語へのディクショナリ。
+# param: word_matrix: 単語ベクトルをまとめた行列。各行に対応する単語のベクトルが格納されていることを想定。
+# param: top: 上位何位魔で表示するか。
+def analogy(
+    a: str, 
+    b: str, 
+    c: str, 
+    word_to_id: dict[str, int], 
+    id_to_word: dict[int, str], 
+    word_matrix: np.ndarray[np.float32], 
+    top : int =5
+) -> None:
+    for word in (a, b, c):
+        if word not in word_to_id:
+            print('%s is not found' % word)
+            return
+    
+    print('\n[analogy] %s : %s = %s : ?' % (a, b, c))
+    a_vec = word_matrix[word_to_id[a]]
+    b_vec = word_matrix[word_to_id[b]]
+    c_vec = word_matrix[word_to_id[c]]
+    query_vec = b_vec - a_vec + c_vec
+    query_vec = normalize(query_vec)
+
+    similarity = np.zeros(len(id_to_word))
+    for i in range(len(id_to_word)):
+        similarity[i] = cos_similarity(word_matrix[i], query_vec)
+    
+    count = 0
+    for i in (-1 * similarity).argsort():
+        if id_to_word[i] in (a, b, c):
+            continue
+        print(' %s: %s' % (id_to_word[i], similarity[i]))
+
+        count += 1
+        if count >= top:
+            return
+
+# ベクトルの長さを 1 にする。
+# param: x: ベクトルまたは、ベクトルの配列(2 次元配列)。
+# return: 正規化されたベクトル。
+def normalize(x: np.ndarray[np.float32]) -> np.ndarray[np.float32]:
+    if x.ndim == 2:
+        s = np.sqrt((x ** 2).sum(axis=1))
+        x /= s.reshape((s.shape[0], 1))
+    elif x.ndim == 1:
+        s = np.sqrt((x ** 2).sum())
+        x /= s
+    return x

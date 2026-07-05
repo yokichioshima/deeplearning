@@ -8,7 +8,16 @@ class SigmoidWithLoss:
         self.y = None # sigmoid の出力
         self.t = None # 教師ラベル
     
-    def forward(self, x, t):
+    # 順伝播。
+    # param: self: SigmoidWithLoss。
+    # param: x: 入力データ。
+    # param: t: 教師ラベル。
+    # return: loss: 損失値。
+    def forward(
+        self, 
+        x: np.ndarray[np.float32],
+        t: np.ndarray[np.int32]
+    ) -> np.float32:
         self.t = t
         self.y = 1 / (1 + np.exp(-x))
 
@@ -16,7 +25,14 @@ class SigmoidWithLoss:
         
         return self.loss
     
-    def backward(self, dout=1):
+    # 逆伝播。
+    # param: self: SigmoidWithLoss。
+    # param: dout: 出力の勾配。
+    # return: dx: 入力の勾配。
+    def backward(
+        self, 
+        dout: np.ndarray[np.float32] = 1
+    ) -> np.ndarray[np.float32]:
         batch_size = self.t.shape[0]
 
         dx = (self.y - self.t) * dout / batch_size
