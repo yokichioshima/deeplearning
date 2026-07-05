@@ -1,3 +1,6 @@
+import numpy as np
+from layers.embedding import Embedding
+
 class EmbeddingDot:
     def __init__(self, W):
         self.embed = Embedding(W)

@@ -1,9 +1,14 @@
 import numpy as np
+from layers.embedding import Embedding
 from layers.matmul import MatMul
 from layers.softmax_with_loss import SoftMaxWithLoss
 
 class SimpleCBOW:
-    def __init__(self, vocab_size, hidden_size):
+    # SimpleCBOW の初期化。
+    # param: self: SimpleCBOW。
+    # param: vocab_size: 語彙数。
+    # param: hidden_size: 隠れ層のニューロン数。
+    def __init__(self, vocab_size: int, hidden_size: int):
         V, H = vocab_size, hidden_size
 
         # 重みの初期化
@@ -26,7 +31,12 @@ class SimpleCBOW:
         # 単語の分散表現を保持
         self.word_vecs = W_in
     
-    def forward(self, contexts, target):
+    # 順伝播。
+    # param: self: SimpleCBOW。
+    # param: contexts: コンテキスト。2 次元配列で、各行がコンテキストの単語 ID のリスト。
+    # param: target: ターゲット。1 次元配列で、各行がターゲットの単語 ID。
+    # return: loss: 損失値。
+    def forward(self, contexts: np.ndarray[np.int32], target: np.ndarray[np.int32]) -> float:
         h0 = self.in_layer0.forward(contexts[:, 0])
         h1 = self.in_layer1.forward(contexts[:, 1])
         h = (h0 + h1) * 0.5
@@ -34,6 +44,10 @@ class SimpleCBOW:
         loss = self.loss_layer.forward(score, target)
         return loss
     
+    # 逆伝播。
+    # param: self: SimpleCBOW。
+    # param: dout: 逆伝播の勾配。
+    # return: None。
     def backward(self, dout=1):
         ds = self.loss_layer.backward(dout)
         da = self.out_layer.backward(ds)

@@ -1,7 +1,15 @@
 import numpy as np
 
-
-def preprocess(text):
+# 前処理
+# param: text: テキストデータ(文字列)
+# return: corpus: 単語 ID リスト
+#         word_to_id: 単語から単語 ID へのディクショナリ
+#         id_to_word: 単語 ID から単語へのディクショナリ
+def preprocess(text: str) -> tuple[
+    np.ndarray[np.int32], 
+    dict[str, int], 
+    dict[int, str]
+]:
     text = text.lower()
     text = text.replace('.', ' .')
     words = text.split(' ')
@@ -25,7 +33,11 @@ def preprocess(text):
 # :param y: ベクトル
 # :param eps: 0 割り防止のための微小値
 # return:
-def cos_similarity(x, y, eps=1e-8):
+def cos_similarity(
+    x: np.ndarray[np.float32],
+    y: np.ndarray[np.float32], 
+    eps=1e-8
+) -> float:
     nx = x / (np.sqrt(np.sum(x ** 2)) + eps)
     ny = y / (np.sqrt(np.sum(y ** 2)) + eps)
     return np.dot(nx, ny)
@@ -37,7 +49,13 @@ def cos_similarity(x, y, eps=1e-8):
 # param: id_to_word: 単語 ID から単語へのディクショナリ
 # param: word_matrix: 単語ベクトルをまとめた行列。各行に対応する単語のベクトルが格納されていることを想定
 # param: top: 上位何位魔で表示するか
-def most_similar(query, word_to_id, id_to_word, word_matrix, top=5):
+def most_similar(
+    query: str, 
+    word_to_id: dict[str, int], 
+    id_to_word: dict[int, str], 
+    word_matrix: np.ndarray[np.float32], 
+    top: int = 5
+):
     if query not in word_to_id:
         print('%s is not found' % query)
         return
@@ -65,7 +83,7 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top=5):
 # param: corpus: 単語 ID リスト(1 次元もしくは 2 次元の Numpy 配列)
 # param: vocab_size: 語彙数
 # return: one-hot 表現(2 次元もしくは 3 次元の Numpy 配列)
-def convert_one_hot(corpus, vocab_size):
+def convert_one_hot(corpus: np.ndarray[np.int32], vocab_size: int) -> np.ndarray[np.int32]:
     N = corpus.shape[0]
 
     if corpus.ndim == 1:
@@ -92,7 +110,11 @@ def convert_one_hot(corpus, vocab_size):
 # param: vocab_size: 語彙数
 # param: window_size: ウィンドウサイズ(ウィンドウサイズが 1 のとき単語の左右 1 単語がコンテキスト)
 # return: 共起行列
-def create_co_matrix(corpus, vocab_size, window_size=1):
+def create_co_matrix(
+    corpus: np.ndarray[np.int32], 
+    vocab_size: int, 
+    window_size: int = 1
+) -> np.ndarray[np.int32]:
     corpus_size = len(corpus)
     co_matrix = np.zeros((vocab_size, vocab_size), dtype=np.int32)
 
@@ -115,7 +137,7 @@ def create_co_matrix(corpus, vocab_size, window_size=1):
 # param C: 共起行列
 # param verbose: 進行状況を出力するかどうか
 # return: PPMI 行列
-def ppmi(C, verbose=False, eps= 1e-8):
+def ppmi(C: np.ndarray[np.int32], verbose=False, eps= 1e-8) -> np.ndarray[np.float32]:
     M = np.zeros_like(C, dtype=np.float32)
     N = np.sum(C)
     S = np.sum(C, axis=0)
@@ -132,3 +154,28 @@ def ppmi(C, verbose=False, eps= 1e-8):
                 if cnt % (total//100 + 1) == 0:
                     print('%.1f%% done' % (100*cnt/total))
     return M
+
+# コンテキストとターゲットの作成
+# param: corpus: コーパス(単語 ID リスト)
+# param: window_size: ウィンドウサイズ(ウィンドウサイズが 1 のとき単語の左右 1 単語がコンテキスト)
+# return: contexts: コンテキスト、
+#         target: ターゲット
+def create_contexts_target(
+    corpus: np.ndarray[np.int32], 
+    window_size: int = 1
+) -> tuple[
+    np.ndarray[np.int32], 
+    np.ndarray[np.int32]
+]:
+    target = corpus[window_size:-window_size]
+    contexts = []
+
+    for idx in range(window_size, len(corpus) - window_size):
+        cs = []
+        for t in range(-window_size, window_size + 1):
+            if t == 0:
+                continue
+            cs.append(corpus[idx + t])
+        contexts.append(cs)
+    
+    return np.array(contexts), np.array(target)

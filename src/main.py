@@ -4,7 +4,7 @@ import pickle
 from common.trainer import Trainer
 from optimizers.adam import Adam
 from models.cbow import CBOW
-from common.util import preprocess, create_cotnexts_target, covert_one_hot
+from common.util import preprocess, create_contexts_target, convert_one_hot
 from dataset import ptb
 
 def main():

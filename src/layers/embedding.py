@@ -1,3 +1,5 @@
+import numpy as np
+
 class Embedding:
     def __init__(self, W):
         self.params = [W]

@@ -3,12 +3,23 @@ from layers.embedding import Embedding
 from layers.negative_sampling_loss import NegativeSamplingLoss
 
 class CBOW:
-    def __init__(self, vocab_size, hidden_size, window_size, corpus):
+    # CBOW モデルの初期化
+    # param: vocab_size: 語彙数。
+    # param: hidden_size: 隠れ層のニューロン数。
+    # param: window_size: ウィンドウサイズ。
+    # param: corpus: コーパス(単語 ID リスト)。
+    def __init__(
+        self, 
+        vocab_size: int, 
+        hidden_size: int, 
+        window_size: int, 
+        corpus: np.ndarray[np.int32]
+    ):
         V, H = vocab_size, hidden_size
 
         # 重みの初期化
         W_in = 0.01 * np.random.randn(V, H).astype('f')
-        W_out = 0.01 * np.random.randn(H, V).astype('f')
+        W_out = 0.01 * np.random.randn(V, H).astype('f')
 
         # layer の生成
         self.in_layers = []
@@ -27,15 +38,29 @@ class CBOW:
         # 単語の分散表現を保持
         self.word_vecs = W_in
 
-    def forward(self, contexts, target):
+    # 順伝播
+    # param: self: CBOW model。
+    # param: contexts: コンテキスト。2 次元配列で、各行がコンテキストの単語 ID のリスト。
+    # param: target: ターゲット。1 次元配列で、各行がターゲットの単語 ID。
+    # return: loss: 損失値。
+    def forward(
+        self, 
+        contexts: np.ndarray[np.int32], 
+        target: np.ndarray[np.int32]
+    ) -> float:
         h = 0
         for i, layer in enumerate(self.in_layers):
             h += layer.forward(contexts[:, i])
         h *= 1 / len(self.in_layers)
+
         loss = self.ns_loss.forward(h, target)
         return loss
     
-    def backward(self, dout=1):
+    # 逆伝播
+    # param: self: CBOW model。
+    # param: dout: 逆伝播の勾配。
+    # return: None。
+    def backward(self, dout: float = 1):
         dout = self.ns_loss.backward(dout)
         dout *= 1 / len(self.in_layers)
         for layer in self.in_layers:
