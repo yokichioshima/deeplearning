@@ -93,3 +93,7 @@ def load_data(data_type='train'):
 
     np.save(save_path, corpus)
     return corpus, word_to_id, id_to_word
+
+if __name__ == '__main__':
+    if data_type in ('train', 'val', 'test'):
+        load_data(data_type)
