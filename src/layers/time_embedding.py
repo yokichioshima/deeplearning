@@ -5,7 +5,7 @@ from layers.embedding import Embedding
 class TimeEmbedding:
     # TimeEmbedding layer の初期化。
     # param: self: TimeEmbedding layer。
-    # param: W: 埋め込み行列。(vocab_size, embedding_size) の形状を持つ。
+    # param: W: 埋め込み行列。(vocab_size, wordvec_size) の形状を持つ。
     def __init__(
         self, 
         W: np.ndarray[np.float32]
@@ -18,7 +18,7 @@ class TimeEmbedding:
     # 順伝播。
     # param: self: TimeEmbedding layer。
     # param: xs: 入力データ。(batch_size, time_steps) の形状を持つ。
-    # return: out: 出力データ。(batch_size, time_steps, embedding_size) の形状を持つ。 
+    # return: out: 出力データ。(batch_size, time_steps, wordvec_size) の形状を持つ。 
     def forward(
         self, 
         xs: np.ndarray[np.float32]
@@ -38,7 +38,7 @@ class TimeEmbedding:
     
     # 逆伝播。
     # param: self: TimeEmbedding layer。
-    # param: dout: 出力データの勾配。(batch_size, time_steps, embedding_size) の形状を持つ。
+    # param: dout: 出力データの勾配。(batch_size, time_steps, wordvec_size) の形状を持つ。
     # return: None。
     def backward(
         self,
