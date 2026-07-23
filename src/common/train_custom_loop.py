@@ -63,3 +63,10 @@ for epoch in range(max_epoch):
     print('| epoch %d | perplexity %.2f' % (epoch+1, ppl))
     ppl_list.append(float(ppl))
     total_loss, loss_count = 0, 0
+
+# グラフの描画
+x = np.arange(len(ppl_list))
+plt.plot(x, ppl_list, label='train')
+plt.xlabel('epochs')
+plt.ylabel('perplexity')
+plt.show()
