@@ -72,5 +72,7 @@ class SimpleRnnlm:
             dout = layer.backward(dout)
         return dout
     
+    # 状態をリセットします。
+    # param: self: TimeLSTM layer。
     def reset_state(self):
         self.rnn_layer.reset_state()
