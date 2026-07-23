@@ -254,6 +254,47 @@ def clip_grads(
         for grad in grads:
             grad *= rate
 
+# 指定されたモデルと指定されたコーパスでパープレキシティを評価します。
+# param: model。
+# corpus: コーパス。
+# batch_size: バッチサイズ。
+# time_size: 時系列長。
+def eval_perplexity(
+    model, 
+    corpus: np.ndarray[np.float32], 
+    batch_size: np.int32 =10, 
+    time_size: np.int32 =35
+) -> np.float32:
+    print('evaluating perplexity ...')
+    corpus_size = len(corpus)
+    total_loss = 0
+    max_iters = (corpus_size - 1) // (batch_size * time_size)
+    jump = (corpus_size - 1) // batch_size
+
+    for iters in range(max_iters):
+        xs = np.zeros((batch_size, time_size), dtype=np.int32)
+        ts = np.zeros((batch_size, time_size), dtype=np.int32)
+        time_offset = iters * time_size
+        offsets = [time_offset + (i * jump) for i in range(batch_size)]
+        for t in range(time_size):
+            for i, offset in enumerate(offsets):
+                xs[i, t] = corpus[(offset + t) % corpus_size]
+                ts[i, t] = corpus[(offset + t + 1) % corpus_size]
+        
+        try:
+            loss = model.forward(xs, ts, train_flg=False)
+        except TypeError:
+            loss = model.forward(xs, ts)
+        total_loss += loss
+
+        sys.stdout.write('\r%d / %d' % (iters, max_iters))
+        sys.stdout.flush()
+    
+    print('')
+    ppl = np.exp(total_loss / max_iters)
+    return ppl
+
+
 
 # パラメータ配列中の重複する重みを一つに集約し、その重みに対応する勾配を加算する。
 # param: params: パラメータ配列。
@@ -268,7 +309,7 @@ def remove_duplicate(
     params, grads = params[:], grads[:]
 
     while True:
-        fing_flg = False
+        find_flg = False
         L = len(params)
 
         for i in range(0, L - 1):
@@ -281,15 +322,15 @@ def remove_duplicate(
                     grads.pop(j)
                 # 転置行列として重みを共有する場合 (weight, tying)
                 elif params[i].ndim == 2 and params[j].ndim == 2 and \
-                    params[i].T.shape == params[j] and np.all(params[i].T == params[j]):
+                    params[i].T.shape == params[j].shape and np.all(params[i].T == params[j]):
                     grads[i] += grads[j].T
                     find_flg = True
                     params.pop(j)
                     grads.pop(j)
                 
                 if find_flg: break
-            if fing_flg: break
+            if find_flg: break
         
-        if not fing_flg: break
+        if not find_flg: break
     
     return params, grads
