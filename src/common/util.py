@@ -235,6 +235,26 @@ def normalize(x: np.ndarray[np.float32]) -> np.ndarray[np.float32]:
         x /= s
     return x
 
+# 勾配の L2 ノルムが閾値値を超えないようにする。
+# param: grads: 勾配の配列。多次元配列。
+# param: 閾値。
+def clip_grads(
+    grads: np.ndarray[np.ndarray[np.float32]], 
+    max_norm: np.float32
+):
+    total_norm = 0
+    sum_squares = 0
+    for grad in grads:
+        sum_squares += np.sum(grad ** 2)
+    total_norm = np.sqrt(sum_squares)
+
+    rate = max_norm / (total_norm + 1e-6)
+
+    if rate < 1:
+        for grad in grads:
+            grad *= rate
+
+
 # パラメータ配列中の重複する重みを一つに集約し、その重みに対応する勾配を加算する。
 # param: params: パラメータ配列。
 # param: grads: 勾配の配列。
