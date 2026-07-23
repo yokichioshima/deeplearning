@@ -1,5 +1,11 @@
 import numpy as np
 
+# sigmoid 関数。
+# param: x: batch 処理の場合、２次元配列。そうでない場合は 1 次元配列。
+# return: sigmoid 関数の出力。
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
 # softmax 関数。
 # param: x: batch 処理の場合、 2 次元配列、そうでない場合は 1 次元配列。
 # return: softmax 関数の出力。

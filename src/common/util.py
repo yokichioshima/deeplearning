@@ -234,3 +234,42 @@ def normalize(x: np.ndarray[np.float32]) -> np.ndarray[np.float32]:
         s = np.sqrt((x ** 2).sum())
         x /= s
     return x
+
+# パラメータ配列中の重複する重みを一つに集約し、その重みに対応する勾配を加算する。
+# param: params: パラメータ配列。
+# param: grads: 勾配の配列。
+def remove_duplicate(
+    params: np.ndarray[np.float32], 
+    grads: np.ndarray[np.float32]
+) -> tuple[
+    np.ndarray[np.float32],
+    np.ndarray[np.float32]
+]:
+    params, grads = params[:], grads[:]
+
+    while True:
+        fing_flg = False
+        L = len(params)
+
+        for i in range(0, L - 1):
+            for j in range(i + 1, L):
+                # 重みを共有する場合
+                if params[i] is params[j]:
+                    grads[i] += grads[j] # 勾配の加算
+                    find_flg = True
+                    params.pop(j)
+                    grads.pop(j)
+                # 転置行列として重みを共有する場合 (weight, tying)
+                elif params[i].ndim == 2 and params[j].ndim == 2 and \
+                    params[i].T.shape == params[j] and np.all(params[i].T == params[j]):
+                    grads[i] += grads[j].T
+                    find_flg = True
+                    params.pop(j)
+                    grads.pop(j)
+                
+                if find_flg: break
+            if fing_flg: break
+        
+        if not fing_flg: break
+    
+    return params, grads
