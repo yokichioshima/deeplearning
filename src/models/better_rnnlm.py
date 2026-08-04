@@ -5,6 +5,7 @@ from layers.time_affine import TimeAffine
 from layers.time_dropout import TimeDropout
 from layers.time_embedding import TimeEmbedding
 from layers.time_lstm import TimeLSTM
+from layers.time_softmax_with_loss import TimeSoftmaxWithLoss
 from models.base_model import BaseModel
 
 class BetterRnnlm(BaseModel):
