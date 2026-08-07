@@ -14,7 +14,7 @@ hidden_size = 650
 time_size = 35
 lr = 20.0
 max_epoch = 40
-max_grads = 0.25
+max_grad = 0.25
 dropout = 0.5
 
 # 学習データの読み込み
@@ -32,7 +32,7 @@ trainer = RnnlmTrainer(model, optimizer)
 
 best_ppl = float('inf')
 for epoch in range(max_epoch):
-    trainer.fit(xs, ts, max_epoch=1, batch_size=batch_size, time_size=time_size, max_grads=max_grads)
+    trainer.fit(xs, ts, max_epoch=1, batch_size=batch_size, time_size=time_size, max_grad=max_grad)
 
     model.reset_state()
     ppl = eval_perplexity(model, corpus_val)

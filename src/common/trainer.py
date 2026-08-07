@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+from common.util import remove_duplicate, clip_grads
 
 
 class Trainer:
@@ -11,7 +12,7 @@ class Trainer:
         self.eval_interval = None
         self.current_epoch = 0
     
-    def fit(self, x, t, max_epoch=10, batch_size=32, max_grads=None, eval_interval=20):
+    def fit(self, x, t, max_epoch=10, batch_size=32, max_grad=None, eval_interval=20):
         data_size = len(x)
         max_iters = data_size // batch_size
         self.eval_interval = eval_interval
@@ -31,8 +32,10 @@ class Trainer:
 
                 loss = model.forward(batch_x, batch_t)
                 model.backward()
-                optimizer.update(model.params, model.grads)
-
+                params, grads = remove_duplicate(model.params, model.grads)
+                if max_grad is not None:
+                    clip_grads(grads, max_grad)
+                optimizer.update(params, grads)
                 total_loss += loss
                 loss_count += 1
 

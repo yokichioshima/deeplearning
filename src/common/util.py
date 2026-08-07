@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 # 前処理。
 # param: text: テキストデータ(文字列)。
@@ -294,6 +295,56 @@ def eval_perplexity(
     ppl = np.exp(total_loss / max_iters)
     return ppl
 
+# 指定されたモデルと指定された質問、正解の組み合わせでシーケンスを評価します。
+# param: model。
+# param: question: 質問。
+# param: correct: 正解。
+# param: id_to_char: 単語 ID から単語へのディクショナリ。
+# param: verbose: 詳細な情報を表示するかどうか。
+# param: is_reverse: 逆順で評価するかどうか。
+def eval_seq2seq(
+    model,
+    question: np.ndarray[np.int32],
+    correct: np.ndarray[np.int32],
+    id_to_char: dict[int, str],
+    verbose: bool = False,
+    is_reverse: bool = False
+):
+    correct = correct.flatten()
+
+    # 頭の区切り文字
+    start_id = correct[0]
+    correct = correct[1:]
+    guess = model.generate(question, start_id, len(correct))
+    
+    # 文字列への変換
+    question = ''.join([id_to_char[int(c)] for c in question.flatten()])
+    correct = ''.join([id_to_char[int(c)] for c in correct.flatten()])
+    guess = ''.join([id_to_char[int(c)] for c in guess])
+
+    if verbose:
+        if is_reverse:
+            question = question[::-1]
+        
+        colors = {'ok': '\033[92m', 'fail': '\033[91m', 'close': '\033[0m'}            
+        print('Q:', question)
+        print('T:', correct)
+
+        is_windows = os.name == 'nt'
+
+        if correct == guess:
+            mark = colors['ok'] + '☑' + colors['close']
+            if is_windows:
+                mark = 'O'
+            print(mark + ' ' + guess)
+        else:
+            mark = colors['fail'] + '☒' + colors['close']
+            if is_windows:
+                mark = 'X'
+            print(mark + ' ' + guess)
+        print('---')
+
+    return 1 if guess == correct else 0
 
 
 # パラメータ配列中の重複する重みを一つに集約し、その重みに対応する勾配を加算する。
