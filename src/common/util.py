@@ -319,7 +319,7 @@ def eval_seq2seq(
     
     # 文字列への変換
     question = ''.join([id_to_char[int(c)] for c in question.flatten()])
-    correct = ''.join([id_to_char[int(c)] for c in correct.flatten()])
+    correct = ''.join([id_to_char[int(c)] for c in correct])
     guess = ''.join([id_to_char[int(c)] for c in guess])
 
     if verbose:
