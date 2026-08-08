@@ -103,7 +103,7 @@ class PeekyDecoder:
         char_id = start_id
         self.lstm.set_state(h)
 
-        H = h.reshape[1]
+        H = h.shape[1]
         peeky_h = h.reshape(1, 1, H)
         for _ in range(sample_size):
             x = np.array([char_id]).reshape((1, 1))
